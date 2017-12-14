@@ -38,35 +38,9 @@ MCP3428Thermal::MCP3428Thermal() {
 MCP3428Thermal::MCP3428Thermal(int deviceNum, int cfg) {
 	assert(0 <= deviceNum && deviceNum < 8);
 	configReg = cfg;
-	int8_t mask;
-	switch(deviceNum) {
-		case 0 :
-			mask = 0b0000;
-			break;
-		case 1 :
-			mask = 0b0010;
-			break;
-		case 2 :
-			mask = 0b0100;
-			break;
-		case 3 :
-			mask = 0b1000;
-			break;
-		case 4 :
-			mask = 0b1010;
-			break;
-		case 5 :
-			mask = 0b1100;
-			break;
-		case 6 :
-			mask = 0b0110;
-			break;
-		case 7 :
-			mask = 0b1110;
-			break;
-		default :
-			mask = 0b0000;
-	}
+	int deviceCodes[] = [DEVICE_ZERO, DEVICE_ONE, DEVICE_THREE, DEVICE_FOUR, 
+	                     DEVICE_FIVE, DEVICE_SIX, DEVICE_SEVEN, DEVICE_EIGHT];
+	int8_t mask = deviceCodes[deviceNum];
 	address = 0b10110000 | mask;
 }
 
@@ -98,20 +72,12 @@ int MCP3428Thermal::getConfigReg(void) {
 
 int MCP3428Thermal::readRegister(int16_t *data, int reg) {
 	int regNum;
-	if (reg == 1)
-		regNum = CFG_CHANNEL_ONE;
-	else if (reg == 2)
-		regNum = CFG_CHANNEL_TWO;
-	else if (reg == 3)
-		regNum = CFG_CHANNEL_THREE;
-	else if (reg == 4)
-		regNum = CFG_CHANNEL_FOUR;
-	else
-		return -1;
+	int regMap[] = [CFG_CHANNEL_ONE, CFG_CHANNEL_TWO,
+		            CFG_CHANNEL_THREE, CFG_CHANNEL_FOUR];
+	regNum = regMap[reg];
 
 	// Updates config register and initiates conversion
-	setConfigReg(configReg & CFG_BLANK_CHANNEL_MASK |
-		         regNum);
+	setConfigReg(configReg & CFG_BLANK_CHANNEL_MASK | regNum);
 
 	// Checks that two bytes are returned
 	int byteCount = Wire.requestFrom(address | ADDRESS_READING, 3); // Read mode

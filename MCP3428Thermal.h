@@ -9,6 +9,15 @@
 
 #include <Wire.h>
 
+#define DEVICE_ZERO 0b0000
+#define DEVICE_ONE 0b0010
+#define DEVICE_TWO 0b0100
+#define DEVICE_THREE 0b1000
+#define DEVICE_FOUR 0b1010
+#define DEVICE_FIVE 0b1100
+#define DEVICE_SIX 0b0110
+#define DEVICE_SEVEn 0b1110
+
 // Or'd together to generate desired config byte
 #define CFG_READY_BIT 0b10000000
 #define CFG_UNREADY_BIT 0b00000000
