@@ -38,10 +38,10 @@ MCP3428Thermal::MCP3428Thermal() {
 MCP3428Thermal::MCP3428Thermal(int deviceNum, int cfg) {
 	assert(0 <= deviceNum && deviceNum < 8);
 	configReg = cfg;
-	int deviceCodes[] = [DEVICE_ZERO, DEVICE_ONE, DEVICE_THREE, DEVICE_FOUR, 
-	                     DEVICE_FIVE, DEVICE_SIX, DEVICE_SEVEN, DEVICE_EIGHT];
+	int deviceCodes[] = {DEVICE_ZERO, DEVICE_ONE, DEVICE_TWO, DEVICE_THREE, 
+		                 DEVICE_FOUR, DEVICE_FIVE, DEVICE_SIX, DEVICE_SEVEN};
 	int8_t mask = deviceCodes[deviceNum];
-	address = 0b10110000 | mask;
+	address = 0b11010000 | mask;
 }
 
 // Returns true if connection is successful, false otherwise
@@ -72,19 +72,21 @@ int MCP3428Thermal::getConfigReg(void) {
 
 int MCP3428Thermal::readRegister(int16_t *data, int reg) {
 	int regNum;
-	int regMap[] = [CFG_CHANNEL_ONE, CFG_CHANNEL_TWO,
-		            CFG_CHANNEL_THREE, CFG_CHANNEL_FOUR];
+	int regMap[] = {CFG_CHANNEL_ONE, CFG_CHANNEL_TWO,
+		            CFG_CHANNEL_THREE, CFG_CHANNEL_FOUR};
 	regNum = regMap[reg];
 
 	// Updates config register and initiates conversion
 	setConfigReg(configReg & CFG_BLANK_CHANNEL_MASK | regNum);
 
 	// Checks that two bytes are returned
-	int byteCount = Wire.requestFrom(address | ADDRESS_READING, 3); // Read mode
+	Serial.println(address);
+	int byteCount = Wire.requestFrom(address, 3); // Read mode
 	if (byteCount == 3) {
 		Serial.println("Two bytes received, we're good.");
 	} else {
-		Serial.println("Something's up.");
+		Serial.println("Something's up. Returning default values.");
+		*data = 0;
 		return -1;
 	}
 
@@ -97,5 +99,6 @@ int MCP3428Thermal::readRegister(int16_t *data, int reg) {
 // Returns temperature data from specified sensor
 double MCP3428Thermal::readTemperature(int inputNum) {
 	// Unimplemented
+	
 	return -1;
 }

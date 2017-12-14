@@ -16,7 +16,7 @@
 #define DEVICE_FOUR 0b1010
 #define DEVICE_FIVE 0b1100
 #define DEVICE_SIX 0b0110
-#define DEVICE_SEVEn 0b1110
+#define DEVICE_SEVEN 0b1110
 
 // Or'd together to generate desired config byte
 #define CFG_READY_BIT 0b10000000
@@ -58,10 +58,10 @@
       This is only important if you have  multiple devices on the same 
                                        I2C line
 */
-#define DEFAULT_ADDRESS 0b10110000
-//                       ^^^^      // MCP3428 Device Code
-//                           ^^^   // Address Bits
-//                              ^  // Read/Write Bit (Write by DEFAULT)
+#define DEFAULT_ADDRESS 0x1101000
+//                        ^^^^      // MCP3428 Device Code
+//                            ^^^   // Address Bits
+//                               ^  // Read/Write Bit (Write by DEFAULT)
 #define ADDRESS_READING 0b00000001 // Read
 #define ADDRESS_WRITING 0b00000000 // Write
 
