@@ -7,7 +7,6 @@ Contents:
 - PCB design in EagleCAD
 
 ToDo:
-- Test
 - Implement temperature conversion
 - Clean up code and add more commenting
 
