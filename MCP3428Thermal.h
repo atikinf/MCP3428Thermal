@@ -18,7 +18,7 @@
 #define DEVICE_SIX 0b0110
 #define DEVICE_SEVEN 0b1110
 
-// Or'd together to generate desired config byte
+// Config byte components: 
 #define CFG_READY_BIT 0b10000000
 #define CFG_UNREADY_BIT 0b00000000
 
@@ -37,6 +37,7 @@
 #define CFG_14 0b00000100
 //   16 bits (Preferred for extra precision)
 #define CFG_16 0b00001000
+#define CFG_SIZE_MASK 0b00001100
 // In 16 bit mode, D15 - 8 (1st data byte) (D15 is sign bit)
 //                 D7  - 0 (2nd data byte)  
 
@@ -48,6 +49,7 @@
 #define CFG_GAIN_THREE 0b00000010 
 // Gain x8
 #define CFG_GAIN_FOUR 0b00000011 
+#define CFG_GAIN_MASK 0b00000011
 
 #define DEFAULT_CONFIG_REG 0b10001000
 
@@ -64,6 +66,11 @@
 //                               ^  // Read/Write Bit (Write by DEFAULT)
 #define ADDRESS_READING 0b00000001 // Read
 #define ADDRESS_WRITING 0b00000000 // Write
+
+// Resolution values:
+#define RES_12 1       // 12 bit resolution setting
+#define RES_14 0.25    // 14 bit 
+#define RES_16 0.0625  // 16 bit 
 
 class MCP3428Thermal
 {
@@ -85,12 +92,15 @@ class MCP3428Thermal
 		int getConfigReg(void);
 
 		// Read Methods
-		int readRegister(int16_t *data, int reg); // gets data byte
+		// Gets two data bytes for the specified channel
+		int readRegister(int16_t *data, int channel); 
 
 		// Returns temperature of chosen thermometer (by input)
 		double readTemperature(int inputNum);
 	private:
 		bool updateADCConfigByte(int dataByte);
+		double dataToVoltage(int16_t data);
+		double voltageToTemp(double voltage);
 		int configReg; 
 		int address;
 };

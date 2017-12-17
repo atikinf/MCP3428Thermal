@@ -1,6 +1,8 @@
 #include "MCP3428Thermal.h"
 #include <assert.h> 
 
+/* 
+
 /* Configuration Register Description:
 	bit 7:   Ready Bit - [1] initializes new conversion (if in one shot mode)
 	                     [0] no effect
@@ -21,18 +23,18 @@
 // 3 Custom address bits are '000' by default
 // NOTE: This assumes that the two address pins are left floating
 MCP3428Thermal::MCP3428Thermal() {
-	configReg = DEFAULT_CONFIG_REG;
-	address = DEFAULT_ADDRESS;
+	configReg = (int) DEFAULT_CONFIG_REG;
+	address = (int) DEFAULT_ADDRESS;
 }
 
 // 8 possible deviceNums:
 // CASE
-// 0 Adr0: 0 Adr1: 0        OR Adr0: FLOATING Adr 1: FLOATING
-// 1 Adr0: 0 Adr1: FLOATING
-// 3 Adr0: 0 Adr1: 1
-// 4 Adr0: 1Adr1:  0 
-// 5 Adr0: 1 Adr1: FLOATING
-// 6 Adr0: 1 Adr1: 1
+// 0 Adr0: 0        Adr1: 0        OR Adr0: FLOATING Adr 1: FLOATING
+// 1 Adr0: 0        Adr1: FLOATING
+// 3 Adr0: 0        Adr1: 1
+// 4 Adr0: 1        Adr1:  0 
+// 5 Adr0: 1        Adr1: FLOATING
+// 6 Adr0: 1        Adr1: 1
 // 7 Adr0: FLOATING Adr1: 0
 // 8 Adr0: FLOATING Adr1: 1
 MCP3428Thermal::MCP3428Thermal(int deviceNum, int cfg) {
@@ -70,12 +72,13 @@ int MCP3428Thermal::getConfigReg(void) {
 	return configReg;
 }
 
-int MCP3428Thermal::readRegister(int16_t *data, int reg) {
+int MCP3428Thermal::readRegister(int16_t *data, int channel) {
 	int regNum;
 	int regMap[] = {CFG_CHANNEL_ONE, CFG_CHANNEL_TWO,
 		            CFG_CHANNEL_THREE, CFG_CHANNEL_FOUR};
-	regNum = regMap[reg];
+	regNum = regMap[channel];
 
+	// This might need to be changed. Testing pending . . .
 	// Updates config register and initiates conversion
 	setConfigReg(configReg & CFG_BLANK_CHANNEL_MASK | regNum);
 
@@ -96,9 +99,31 @@ int MCP3428Thermal::readRegister(int16_t *data, int reg) {
 	return adcStatus;
 }
 
-// Returns temperature data from specified sensor
+// Returns temperature data from specified channel (temp sensor)
 double MCP3428Thermal::readTemperature(int inputNum) {
 	// Unimplemented
-	
-	return -1;
+	assert(1 <= inputNum && inputNum <= 4);
+	int16_t* dataPtr;
+	readRegister(dataPtr, inputNum);
+	double voltage = dataToVoltage(*dataPtr);
+	return voltageToTemp(voltage);
+}
+
+// Returns voltage (mV) corresponding to given 16 bit data information
+double MCP3428Thermal::dataToVoltage(int16_t data) {
+	int PGA = 1 << (configReg & CFG_GAIN_MASK); // Gets gain coefficient
+	int dataSize = (configReg & CFG_SIZE_MASK) >> 2;
+	// Resolution coef: 12 bits - 1 mV 
+	float resMap[] = {RES_12, RES_14, RES_16}; // Gets resolution coefficient
+    int resCoef = resMap[dataSize];
+    // The equation for voltage as per the ADC specification
+    return (double) data * resCoef / PGA;
+}
+
+// Takes a value in mV and returns the corresponding temperature in Celsius
+double MCP3428Thermal::voltageToTemp(double voltage) {
+	// Based off of TMP 36 specification
+	// Two points in the voltage-temp graph: (750mV, 25C), (1000mV, 50C).
+	// So the equation is C = mV / 10 - 50
+	return voltage / 10 - 50;
 }
